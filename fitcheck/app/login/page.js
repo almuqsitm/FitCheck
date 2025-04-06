@@ -5,12 +5,37 @@ import { useState } from 'react';
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle login logic here (e.g., API call to Supabase)
-    console.log('Email:', email);
-    console.log('Password:', password);
+    setError('');
+    setMessage('');
+
+    try {
+      console.log('Sending request to /api/auth/login with:', { email, password });
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+      console.log('Response from /api/auth/login:', data);
+
+      if (!response.ok) {
+        setError(data.error || 'An error occurred');
+      } else {
+        setMessage(data.message);
+        // Handle successful login (e.g., redirect to dashboard)
+      }
+    } catch (err) {
+      console.error('Error during fetch:', err);
+      setError('An error occurred');
+    }
   };
 
   return (
@@ -48,6 +73,8 @@ export default function LoginPage() {
               required
             />
           </div>
+          {error && <p className="text-red-500 text-center">{error}</p>}
+          {message && <p className="text-green-500 text-center">{message}</p>}
           <button
             type="submit"
             className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition duration-200 dark:bg-blue-700 dark:hover:bg-blue-800"

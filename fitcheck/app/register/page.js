@@ -7,15 +7,45 @@ export default function RegisterPage() {
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [gender, setGender] = useState('');
+  const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
 
-  const handleSubmit = (e) => {
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle registration logic here (e.g., API call to Supabase)
+    setError('');
+    setMessage('');
+
+    try {
+      console.log('Sending request to /api/auth/signup with:', { email, password });
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+      console.log('Response from /api/auth/login:', data);
+
+      if (!response.ok) {
+        setError(data.error || 'An error occurred');
+      } else {
+        setMessage(data.message);
+  
+      }
+    } catch (err) {
+      console.error('Error during fetch:', err);
+      setError('An error occurred');
+    }
+
     console.log('First Name:', firstName);
     console.log('Last Name:', lastName);
     console.log('Email:', email);
     console.log('Gender:', gender);
   };
+  
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
