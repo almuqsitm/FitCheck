@@ -1,16 +1,8 @@
 """
-This MVP script only does some basic sentiment analysis on a 
+This MVP script only does some basic sentiment analysis on the database
 """
 
 import os
-"""
-This imports will probably be needed when connection the model
-
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-from typing import List
-from supabase import create_client, Client
-"""
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, pipeline
 import os
 from fastapi import FastAPI, HTTPException
@@ -52,17 +44,22 @@ if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
 """
+
+class ReviewRequest(BaseModel):
+    star_rating: int
+    review_text: str
+
 def store_review(star_rating, review_text, sentiments):
     created_at = datetime.now()
     data = {
-        "star_rating":star_rating,
-        "review_text":review_text,
-        "sentiment_label":sentiments[0]["label"],
-        "sentiment_score":sentiments[0]["score"],
-        "created_at":created_at
+        "star_rating": star_rating,
+        "review_text": review_text,
+        "sentiment_label": sentiments[0]["label"],
+        "sentiment_score": sentiments[0]["score"],
+        "created_at": created_at
     }
     try:
-        response=supabase.table("sentiment").insert(data).execute()
+        response = supabase.table("sentiment").insert(data).execute()
         if response.status_code == 201:
             print("Review stored successfully in Supabase!")
         else:
@@ -70,10 +67,11 @@ def store_review(star_rating, review_text, sentiments):
     except Exception as e:
         print(f"Error while storing review in Supabase:{str(e)}")
 
-
 @app.post("/analyze-product-review")
-def analyze_product_review(star_rating:int,review_text:str):
+def analyze_product_review(review_request: ReviewRequest):
     print("Api called")
+    star_rating = review_request.star_rating
+    review_text = review_request.review_text
     if not (1 <= star_rating <= 5):
         raise HTTPException(status_code=400, detail="Star ratings must be from 1 to 5.")
     raw_sentiments = sentiment_pipeline(review_text)
@@ -81,52 +79,13 @@ def analyze_product_review(star_rating:int,review_text:str):
     for res in raw_sentiments:
         mapped_label = label_mapping.get(res["label"], res["label"])
         sentiments.append({"label": mapped_label, "score": res["score"]})
-
-    store_review(star_rating,review_text,sentiments)
+    store_review(star_rating, review_text, sentiments)
     return {
         "star_rating": star_rating,
         "sentiment": sentiments
     }
 
-
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
 
-
-
-
-#For terminal
-
-# if __name__ == "__main__":
-    
-#     while True:
-#         star_rating = input("Enter your product rating (1-5 stars): ").strip()
-#         try:
-#             star_rating = int(star_rating)
-#             if star_rating < 1 or star_rating > 5:
-#                 print("Please enter a rating between 1 and 5.")
-#             else:
-#                 break
-#         except ValueError:
-#             print("Please enter a valid number for the rating.")
-#     review_text = input("Enter your product review: ").strip()
-#     if not review_text:
-#         print("Review text is empty. Exiting.")
-#         exit(1)
-
-    
-
-    
-#     raw_sentiments = sentiment_pipeline(review_text)
-#     sentiments = []
-#     for res in raw_sentiments:
-#         mapped_label = label_mapping.get(res["label"], res["label"])
-#         sentiments.append({"label": mapped_label, "score": res["score"]})
-
-#     #print it in the terminal
-#     print("Star rating provided:", star_rating)
-#     print("\nSentiment analysis results:", sentiments)
-
-
-  
