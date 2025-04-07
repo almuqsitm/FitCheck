@@ -5,14 +5,39 @@ import Link from "next/link";
 import { useState } from "react";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Email:", email);
-    console.log("Password:", password);
-    // You can later send this data to Supabase here
+    setError('');
+    setMessage('');
+
+    try {
+      console.log('Sending request to /api/auth/login with:', { email, password });
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+      console.log('Response from /api/auth/login:', data);
+
+      if (!response.ok) {
+        setError(data.error || 'An error occurred');
+      } else {
+        setMessage(data.message);
+        // Handle successful login (e.g., redirect to dashboard)
+      }
+    } catch (err) {
+      console.error('Error during fetch:', err);
+      setError('An error occurred');
+    }
   };
 
   return (
