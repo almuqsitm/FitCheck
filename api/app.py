@@ -54,8 +54,8 @@ def store_review(star_rating, review_text, sentiments):
     data = {
         "star_rating": star_rating,
         "review_text": review_text,
-        "sentiment_label":sentiments[0]["label"],
-        "sentiment_score":sentiments[0]["score"],
+        "sentiment_label": sentiments[0]["label"],
+        "sentiment_score": sentiments[0]["score"],
         "created_at": created_at
     }
     try:
@@ -75,17 +75,17 @@ def analyze_product_review(review_request: ReviewRequest):
     if not (1 <= star_rating <= 5):
         raise HTTPException(status_code=400, detail="Star ratings must be from 1 to 5.")
     raw_sentiments = sentiment_pipeline(review_text)
-    sentiments=[]
+    sentiments = []
     for res in raw_sentiments:
         mapped_label = label_mapping.get(res["label"], res["label"])
-        sentiments.append({"label": mapped_label, "score": res["score"]})
-    store_review(star_rating, review_text, sentiments="positive")
+        sentiments.append({"label": mapped_label, "score": round(res["score"], 4)})
+    store_review(star_rating, review_text, sentiments)
     return {
         "star_rating": star_rating,
+        "review_text": review_text,
         "sentiment": sentiments
     }
 
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
-
