@@ -50,6 +50,17 @@ export default function RegisterPage() {
 
   return (
     <MainLayout>
+
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        className="fixed top-0 left-0 w-full h-full object-cover z-0"
+      >
+        <source src= "/pinkvid.mp4" type="video/mp4" />
+      </video>
+      
       <div className="flex items-center justify-center h-screen px-10 relative z-10">
         <div className="bg-zinc-800 p-10 rounded-xl shadow-xl max-w-md w-full space-y-6">
           <h1 className="text-4xl font-bold text-center">Register</h1>
